@@ -4,33 +4,33 @@ DESCRIBE_PARTS := $(subst -, ,$(DESCRIBE))
 VERSION_TAG := $(word 1,$(DESCRIBE_PARTS))
 COMMITS_SINCE_TAG := $(word 2,$(DESCRIBE_PARTS))
 
-VERSION := $(subst v,,$(VERSION_TAG))
+VERSION ?= $(subst v,,$(VERSION_TAG))
 VERSION_PARTS := $(subst ., ,$(VERSION))
 
 VERSION_MAJOR := $(word 1,$(VERSION_PARTS))
 VERSION_MINOR := $(word 1,$(VERSION_PARTS)).$(word 2,$(VERSION_PARTS))
 VERSION_MICRO := $(word 1,$(VERSION_PARTS)).$(word 2,$(VERSION_PARTS)).$(word 3,$(VERSION_PARTS))
 
-PKG_CONFIG_PATH := /usr/share/pkgconfig
+PKG_CONFIG_PATH ?= /usr/share/pkgconfig
 
-prefix := /usr/local
-exec_prefix := $(prefix)
+prefix ?= /usr/local
+exec_prefix ?= $(prefix)
 
-bin_suffix = bin
-bindir := $(exec_prefix)/$(bin_suffix)
-include_suffix = include
-includedir := $(prefix)/$(include_suffix)
-lib_suffix = lib
-libdir := $(prefix)/$(lib_suffix)
+bin_suffix := bin
+bindir ?= $(exec_prefix)/$(bin_suffix)
+include_suffix := include
+includedir ?= $(prefix)/$(include_suffix)
+lib_suffix := lib
+libdir ?= $(prefix)/$(lib_suffix)
 
-CFLAGS :=
-LDFLAGS :=
-CC := gcc
+CFLAGS ?=
+LDFLAGS ?=
+CC ?= gcc
 
-LIB_CFLAGS += $(shell pkg-config --cflags dbus-1)
-LIB_LDFLAGS += $(shell pkg-config --libs dbus-1)
+LIB_CFLAGS = $(CFLAGS) $(shell pkg-config --cflags dbus-1)
+LIB_LDFLAGS = $(LDFLAGS) $(shell pkg-config --libs dbus-1)
 
-.PHONY: install uninstall clean
+.PHONY: all install uninstall clean check
 
 all: libnoti.so noticat
 
@@ -53,6 +53,15 @@ noti.pc:
 	echo 'Libs: -L$${libdir} -lnoti' >> $@
 	echo 'Cflags: -I$${includedir}' >> $@
 
+compile_commands.json:
+	bear -- make
+
+check: compile_commands.json
+	clang-tidy noti.c noticat.c
+	clang-check noti.c noticat.c
+	clang-format -i noti.c noticat.c noti.h
+	git diff --exit-code &>/dev/null
+
 install: libnoti.so noticat noti.pc
 	mkdir -p $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) $(DESTDIR)$(includedir) $(DESTDIR)$(PKG_CONFIG_PATH)
 	cp libnoti.so $(DESTDIR)$(libdir)/libnoti.$(VERSION_MICRO).so
@@ -72,4 +81,4 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) $(DESTDIR)$(includedir)
 
 clean:
-	rm -f noticat libnoti.so noti.pc
+	rm -f noticat libnoti.so noti.pc compile_commands.json

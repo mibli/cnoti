@@ -14,4 +14,4 @@ int noti_process_events();
 /** Return error message or NULL if none. Don't free the string. */
 char const *noti_get_error_msg();
 
-#endif//__NOTI__
+#endif //__NOTI__

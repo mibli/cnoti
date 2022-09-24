@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
@@ -7,7 +8,6 @@
 #include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
-#include <stdio.h>
 
 #ifdef DBUS_WIN
 #include <io.h>
@@ -81,7 +81,8 @@ static void process_message(DBusMessage *message) {
   }
 }
 
-static DBusHandlerResult monitor_filter_func(DBusConnection *connection, DBusMessage *message, void *user_data) {
+static DBusHandlerResult monitor_filter_func(DBusConnection *connection, DBusMessage *message,
+                                             void *user_data) {
   process_message(message);
 
   if (dbus_message_is_signal(message, DBUS_INTERFACE_LOCAL, "Disconnected")) {
@@ -166,7 +167,7 @@ int noti_init(callback_type *new_callback) {
   if (g_connection == NULL) {
     snprintf(g_errstr, sizeof(g_errstr), "Failed to open connection to session bus: %s\n", error.message);
     dbus_error_free(&error);
-    exit(1);
+    return 0;
   }
 
   dbus_connection_set_route_peer_messages(g_connection, TRUE);
@@ -174,7 +175,7 @@ int noti_init(callback_type *new_callback) {
   DBusHandleMessageFunction filter_func = monitor_filter_func;
   if (!dbus_connection_add_filter(g_connection, filter_func, NULL, NULL)) {
     strcpy(g_errstr, "Couldn't add filter!\n");
-    exit(1);
+    return 0;
   }
 
   char const *filter = "type='method_call',interface='org.freedesktop.Notifications',member='Notify'";
@@ -184,9 +185,11 @@ int noti_init(callback_type *new_callback) {
     if (dbus_error_is_set(&error)) {
       snprintf(g_errstr, sizeof(g_errstr), "Failed to become monitor: %s\n", error.message);
       dbus_error_free(&error);
-      exit(1);
+      return 0;
     }
   }
+
+  return 1;
 }
 
 int noti_process_events() { return dbus_connection_read_write_dispatch(g_connection, -1); }
