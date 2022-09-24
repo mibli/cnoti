@@ -81,7 +81,7 @@ static void process_message(DBusMessage *message) {
   }
 }
 
-static DBusHandlerResult monitor_filter_func(DBusConnection *connection, DBusMessage *message, void *) {
+static DBusHandlerResult monitor_filter_func(DBusConnection *connection, DBusMessage *message, void *user_data) {
   process_message(message);
 
   if (dbus_message_is_signal(message, DBUS_INTERFACE_LOCAL, "Disconnected")) {
