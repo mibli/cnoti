@@ -22,8 +22,10 @@
 #define STDOUT_FILENO 1
 #endif
 
+#include "noti.h"
+
 static char g_errstr[64] = "";
-static void (*g_callback)(char *, uint32_t, char *, char *, char *, int32_t) = NULL;
+static callback_type *g_callback = NULL;
 static DBusConnection *g_connection;
 
 // Message Processing
@@ -153,13 +155,10 @@ static dbus_bool_t become_monitor(DBusConnection *connection, int filters_count,
 // PUBLIC_INTERFACE
 // ----------------
 
-void noti_set_callback(void (*new_callback)(char *, uint32_t, char *, char *, char *, int32_t)) {
-  g_callback = new_callback;
-}
-
-int noti_init() {
+int noti_init(callback_type *new_callback) {
   DBusError error;
   DBusBusType type = DBUS_BUS_SESSION;
+  g_callback = new_callback;
 
   dbus_error_init(&error);
 

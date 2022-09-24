@@ -8,8 +8,7 @@ void print_notification(char *appname, uint32_t id, char *icon, char *summary, c
 }
 
 int main(int argc, char *argv[]) {
-  noti_set_callback(print_notification);
-  noti_init();
+  noti_init(print_notification);
   while (noti_process_events()) {
   };
   char const *errstr = noti_get_error_msg();
