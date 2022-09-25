@@ -103,7 +103,7 @@ static DBusHandlerResult monitor_filter(DBusConnection *connection, DBusMessage 
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-static dbus_bool_t start_monitor(DBusConnection *connection, int filters_count, const char *const *filters) {
+static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter) {
   DBusError err = DBUS_ERROR_INIT;
   DBusMessage *new_call_message;
   DBusMessage *connection_message;
@@ -119,36 +119,26 @@ static dbus_bool_t start_monitor(DBusConnection *connection, int filters_count, 
   DBusMessageIter message_it, filters_it;
   dbus_message_iter_init_append(new_call_message, &message_it);
 
-  if (not dbus_message_iter_open_container(&message_it, DBUS_TYPE_ARRAY, "s", &filters_it)) {
-    error("noti-monitor: Out of memory while opening the filter array.");
+  dbus_uint32_t zero = 0;
+  if (not(dbus_message_iter_open_container(&message_it, DBUS_TYPE_ARRAY, "s", &filters_it) and
+          dbus_message_iter_append_basic(&filters_it, DBUS_TYPE_STRING, &filter) and
+          dbus_message_iter_close_container(&message_it, &filters_it) and
+          dbus_message_iter_append_basic(&message_it, DBUS_TYPE_UINT32, &zero))) {
+    error("noti-monitor: Out of memory while registering the filter array.");
     return 0;
   }
 
-  for (int i = 0; i < filters_count; i++) {
-    if (not dbus_message_iter_append_basic(&filters_it, DBUS_TYPE_STRING, &filters[i])) {
-      error("noti-monitor: Out of memory while registering a filter.");
-      return 0;
-    }
+  connection_message = dbus_connection_send_with_reply_and_block(connection, new_call_message, -1, &err);
 
-    dbus_uint32_t zero = 0;
-    if (not dbus_message_iter_close_container(&message_it, &filters_it) or
-        not dbus_message_iter_append_basic(&message_it, DBUS_TYPE_UINT32, &zero)) {
-      error("noti-monitor: Out of memory while closing the filter array.");
-      return 0;
-    }
-
-    connection_message = dbus_connection_send_with_reply_and_block(connection, new_call_message, -1, &err);
-
-    if (connection_message != NULL) {
-      dbus_message_unref(connection_message);
-    } else if (dbus_error_has_name(&err, DBUS_ERROR_UNKNOWN_INTERFACE)) {
-      warning("noti-monitor: Failed to enable new-style monitoring. Listening instead.");
-      dbus_error_free(&err);
-    } else {
-      warning("noti-monitor: Failed to enable monitoring: %s: \"%s\". Listening instead.", err.name,
-              err.message);
-      dbus_error_free(&err);
-    }
+  if (connection_message != NULL) {
+    dbus_message_unref(connection_message);
+  } else if (dbus_error_has_name(&err, DBUS_ERROR_UNKNOWN_INTERFACE)) {
+    warning("noti-monitor: Failed to enable new-style monitoring. Listening instead.");
+    dbus_error_free(&err);
+  } else {
+    warning("noti-monitor: Failed to enable monitoring: %s: \"%s\". Listening instead.", err.name,
+            err.message);
+    dbus_error_free(&err);
   }
 
   dbus_message_unref(new_call_message);
@@ -181,16 +171,13 @@ bool noti_init(callback_type *new_callback) {
 
   dbus_connection_set_route_peer_messages(g_connection, TRUE);
 
-  DBusHandleMessageFunction filter_func = monitor_filter;
-  if (not dbus_connection_add_filter(g_connection, filter_func, NULL, NULL)) {
+  if (not dbus_connection_add_filter(g_connection, monitor_filter, NULL, NULL)) {
     error("Couldn't add filter!");
     return false;
   }
 
-  char const *filter = "type='method_call',interface='org.freedesktop.Notifications',member='Notify'";
-  char const *filters[] = {filter};
-  uint32_t const filters_count = sizeof(filters) / sizeof(char *);
-  if (not start_monitor(g_connection, filters_count, (const char *const *)filters)) {
+  if (not start_monitor(g_connection,
+                        "type='method_call',interface='org.freedesktop.Notifications',member='Notify'")) {
     if (dbus_error_is_set(&err)) {
       error("Failed to start monitor: %s", err.message);
       dbus_error_free(&err);
