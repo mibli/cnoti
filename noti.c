@@ -113,7 +113,7 @@ static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter)
 
   if (new_call_message == NULL) {
     error("noti-monitor: Out of memory while registering a monitoring interface.");
-    return 0;
+    return FALSE;
   }
 
   DBusMessageIter message_it, filters_it;
@@ -125,7 +125,7 @@ static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter)
           dbus_message_iter_close_container(&message_it, &filters_it) and
           dbus_message_iter_append_basic(&message_it, DBUS_TYPE_UINT32, &zero))) {
     error("noti-monitor: Out of memory while registering the filter array.");
-    return 0;
+    return FALSE;
   }
 
   connection_message = dbus_connection_send_with_reply_and_block(connection, new_call_message, -1, &err);
