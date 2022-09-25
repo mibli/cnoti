@@ -13,7 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: install dbus
+    - name: Install dbus
       run: sudo apt install libdbus-glib-1-dev
-    - name: make
+    - name: Build noti
       run: make
+    - name: Install noti
+      run: make install
+    - name: Run noticat
+      run: noticat

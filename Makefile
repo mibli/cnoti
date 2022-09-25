@@ -30,8 +30,10 @@ CC ?= gcc
 LIB_CFLAGS = $(CFLAGS) $(shell pkg-config --cflags dbus-1)
 LIB_LDFLAGS = $(LDFLAGS) $(shell pkg-config --libs dbus-1)
 
+RPATH = \$$ORIGIN/$(shell realpath --relative-to="$(bindir)" "$(libdir)")
+
 BIN_CFLAGS =
-BIN_LDFLAGS = -l noti -L ./
+BIN_LDFLAGS = -l noti.$(VERSION_MAJOR) -L ./ -Wl,-R$(RPATH)
 
 ifdef USE_CJSON
 BIN_CFLAGS += -DUSE_CJSON $(shell pkg-config --cflags libcjson)
@@ -40,12 +42,12 @@ endif
 
 .PHONY: all install uninstall clean check
 
-all: libnoti.so noticat
+all: libnoti.$(VERSION_MAJOR).so noticat
 
-libnoti.so: noti.c noti.h
+libnoti.%.so: noti.c noti.h
 	$(CC) noti.c $(LIB_CFLAGS) $(LIB_LDFLAGS) -shared -o $@
 
-noticat: libnoti.so noticat.c
+noticat: libnoti.$(VERSION_MAJOR).so noticat.c
 	$(CC) noticat.c $(BIN_CFLAGS) $(BIN_LDFLAGS) -o $@
 
 noti.pc:
@@ -70,14 +72,14 @@ check: compile_commands.json
 	clang-format -i noti.c noticat.c noti.h
 	git diff --exit-code &>/dev/null
 
-install: libnoti.so noticat noti.pc
+install: libnoti.$(VERSION_MAJOR).so noticat noti.pc
 	mkdir -p $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) $(DESTDIR)$(includedir) $(DESTDIR)$(PKG_CONFIG_PATH)
-	cp libnoti.so $(DESTDIR)$(libdir)/libnoti.$(VERSION_MICRO).so
-	ln -sf libnoti.$(VERSION_MICRO).so $(DESTDIR)$(libdir)/libnoti.so
-	ln -sf libnoti.$(VERSION_MICRO).so $(DESTDIR)$(libdir)/libnoti.$(VERSION_MAJOR).so
-	cp noti.h $(DESTDIR)$(includedir)/noti
-	cp noticat $(DESTDIR)$(bindir)/noticat
-	cp noti.pc $(DESTDIR)$(PKG_CONFIG_PATH)/noti.pc
+	install -t $(DESTDIR)$(libdir) libnoti.$(VERSION_MAJOR).so
+	ln -sf libnoti.$(VERSION_MAJOR).so $(DESTDIR)$(libdir)/libnoti.so
+	ln -sf libnoti.$(VERSION_MAJOR).so $(DESTDIR)$(libdir)/libnoti.$(VERSION_MICRO).so
+	install -t $(DESTDIR)$(includedir) noti.h
+	install -t $(DESTDIR)$(bindir) noticat
+	install noti.pc $(DESTDIR)$(PKG_CONFIG_PATH)/noti.pc
 
 uninstall:
 	rm -f $(DESTDIR)$(PKG_CONFIG_PATH)/noti.pc
@@ -89,4 +91,4 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) $(DESTDIR)$(includedir)
 
 clean:
-	rm -f noticat libnoti.so noti.pc compile_commands.json
+	rm -f noticat libnoti.*so noti.pc compile_commands.json
