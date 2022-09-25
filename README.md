@@ -16,13 +16,15 @@ To install run this
 
 ## Usage
 
-    int noti_init(callback_type *callback)
+    bool noti_init(callback_type *callback)
 
 Initializes DBus connection and saves your callback pointer to call when a notification is received.
+False means it failed, check error message. If callback is NULL, it will not be set.
 
-    int noti_process_events()
+    bool noti_process_events()
 
-Process events, must be called in a loop. If exits with 0, You should check an error.
+Process events, must be called in a loop. If exits with false, You should check an error. Will not
+continue until `noti_init` is called again
 
     char const *noti_get_error_msg()
 
