@@ -30,6 +30,14 @@ CC ?= gcc
 LIB_CFLAGS = $(CFLAGS) $(shell pkg-config --cflags dbus-1)
 LIB_LDFLAGS = $(LDFLAGS) $(shell pkg-config --libs dbus-1)
 
+BIN_CFLAGS =
+BIN_LDFLAGS = -l noti -L ./
+
+ifdef USE_CJSON
+BIN_CFLAGS += -DUSE_CJSON $(shell pkg-config --cflags libcjson)
+BIN_LDFLAGS += $(shell pkg-config --libs libcjson)
+endif
+
 .PHONY: all install uninstall clean check
 
 all: libnoti.so noticat
@@ -38,7 +46,7 @@ libnoti.so: noti.c noti.h
 	$(CC) noti.c $(LIB_CFLAGS) $(LIB_LDFLAGS) -shared -o $@
 
 noticat: libnoti.so noticat.c
-	$(CC) noticat.c $(CFLAGS) -l noti -L./ -o $@
+	$(CC) noticat.c $(BIN_CFLAGS) $(BIN_LDFLAGS) -o $@
 
 noti.pc:
 	echo 'prefix=$(prefix)' > $@

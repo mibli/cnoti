@@ -31,6 +31,15 @@ continue until `noti_init` is called again
 Returns pointer to static message array, or NULL if no there's no error message. Don't free the
 string.
 
+## Noticat
+
+This is a simple example of usage, which can be used as simple transport. It's recommended to use
+`USE_CJSON` option, which allows to use noticat as notification transport to JSON (and further for
+example to MQTT) eg.
+
+    USE_CJSON=YES make noticat
+    noticat -json | mosquitto_pub -t /notifications -l
+
 ## Example
 
 See noticat.c.
