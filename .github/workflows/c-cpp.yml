@@ -18,6 +18,6 @@ jobs:
     - name: Build noti
       run: make
     - name: Install noti
-      run: make install
+      run: sudo make install
     - name: Run noticat
-      run: noticat
+      run: noticat -h

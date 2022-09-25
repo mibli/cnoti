@@ -33,7 +33,7 @@ LIB_LDFLAGS = $(LDFLAGS) $(shell pkg-config --libs dbus-1)
 RPATH = \$$ORIGIN/$(shell realpath --relative-to="$(bindir)" "$(libdir)")
 
 BIN_CFLAGS =
-BIN_LDFLAGS = -l noti.$(VERSION_MAJOR) -L ./ -Wl,-R$(RPATH)
+BIN_LDFLAGS = -l cnoti.$(VERSION_MAJOR) -L ./ -Wl,-R$(RPATH)
 
 ifdef USE_CJSON
 BIN_CFLAGS += -DUSE_CJSON $(shell pkg-config --cflags libcjson)
@@ -42,53 +42,53 @@ endif
 
 .PHONY: all install uninstall clean check
 
-all: libnoti.$(VERSION_MAJOR).so noticat
+all: libcnoti.$(VERSION_MAJOR).so noticat
 
-libnoti.%.so: noti.c noti.h
-	$(CC) noti.c $(LIB_CFLAGS) $(LIB_LDFLAGS) -shared -o $@
+libcnoti.%.so: cnoti.c cnoti.h
+	$(CC) cnoti.c $(LIB_CFLAGS) $(LIB_LDFLAGS) -shared -o $@
 
-noticat: libnoti.$(VERSION_MAJOR).so noticat.c
+noticat: libcnoti.$(VERSION_MAJOR).so noticat.c
 	$(CC) noticat.c $(BIN_CFLAGS) $(BIN_LDFLAGS) -o $@
 
-noti.pc:
+cnoti.pc:
 	echo 'prefix=$(prefix)' > $@
 	echo 'exec_prefix=$${prefix}' >> $@
 	echo 'includedir=$${prefix}/$(include_suffix)' >> $@
 	echo 'libdir=$${prefix}/$(lib_suffix)' >> $@
 	echo '' >> $@
 	echo 'Name: Noti' >> $@
-	echo 'Description: little DBus notification monitor' >> $@
+	echo 'Description: little DBus cnotification monitor' >> $@
 	echo 'Version: $(VERSION_MICRO)' >> $@
 	echo 'Requires: dbus-1' >> $@
-	echo 'Libs: -L$${libdir} -lnoti' >> $@
+	echo 'Libs: -L$${libdir} -lcnoti' >> $@
 	echo 'Cflags: -I$${includedir}' >> $@
 
 compile_commands.json:
 	bear -- make
 
 check: compile_commands.json
-	clang-tidy noti.c noticat.c
-	clang-check noti.c noticat.c
-	clang-format -i noti.c noticat.c noti.h
+	clang-tidy cnoti.c noticat.c
+	clang-check cnoti.c noticat.c
+	clang-format -i cnoti.c noticat.c cnoti.h
 	git diff --exit-code &>/dev/null
 
-install: libnoti.$(VERSION_MAJOR).so noticat noti.pc
+install: libcnoti.$(VERSION_MAJOR).so noticat cnoti.pc
 	mkdir -p $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) $(DESTDIR)$(includedir) $(DESTDIR)$(PKG_CONFIG_PATH)
-	install -t $(DESTDIR)$(libdir) libnoti.$(VERSION_MAJOR).so
-	ln -sf libnoti.$(VERSION_MAJOR).so $(DESTDIR)$(libdir)/libnoti.so
-	ln -sf libnoti.$(VERSION_MAJOR).so $(DESTDIR)$(libdir)/libnoti.$(VERSION_MICRO).so
-	install -t $(DESTDIR)$(includedir) noti.h
+	install -t $(DESTDIR)$(libdir) libcnoti.$(VERSION_MAJOR).so
+	ln -sf libcnoti.$(VERSION_MAJOR).so $(DESTDIR)$(libdir)/libcnoti.so
+	ln -sf libcnoti.$(VERSION_MAJOR).so $(DESTDIR)$(libdir)/libcnoti.$(VERSION_MICRO).so
+	install -t $(DESTDIR)$(includedir) cnoti.h
 	install -t $(DESTDIR)$(bindir) noticat
-	install noti.pc $(DESTDIR)$(PKG_CONFIG_PATH)/noti.pc
+	install cnoti.pc $(DESTDIR)$(PKG_CONFIG_PATH)/cnoti.pc
 
 uninstall:
-	rm -f $(DESTDIR)$(PKG_CONFIG_PATH)/noti.pc
+	rm -f $(DESTDIR)$(PKG_CONFIG_PATH)/cnoti.pc
 	rm -f $(DESTDIR)$(bindir)/noticat
-	rm -f $(DESTDIR)$(includedir)/noti.h
-	rm -f $(DESTDIR)$(libdir)/libnoti.so
-	rm -f $(DESTDIR)$(libdir)/libnoti.$(VERSION_MAJOR).so
-	rm -f $(DESTDIR)$(libdir)/libnoti.$(VERSION_MICRO).so
+	rm -f $(DESTDIR)$(includedir)/cnoti.h
+	rm -f $(DESTDIR)$(libdir)/libcnoti.so
+	rm -f $(DESTDIR)$(libdir)/libcnoti.$(VERSION_MAJOR).so
+	rm -f $(DESTDIR)$(libdir)/libcnoti.$(VERSION_MICRO).so
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) $(DESTDIR)$(includedir)
 
 clean:
-	rm -f noticat libnoti.*so noti.pc compile_commands.json
+	rm -f noticat libcnoti.*so cnoti.pc compile_commands.json

@@ -1,4 +1,4 @@
-libnoti.*so
-noticat
-noti.pc
+cnoti.pc
 compile_commands.json
+libcnoti.*so
+noticat

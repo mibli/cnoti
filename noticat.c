@@ -1,4 +1,4 @@
-#include "noti.h"
+#include "cnoti.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -22,13 +22,13 @@ void print_json(char *appname, uint32_t id, char *icon, char *summary, char *bod
 }
 #endif
 
-void print_notification(char *appname, uint32_t id, char *icon, char *summary, char *body, int32_t timeout) {
+void print_cnotification(char *appname, uint32_t id, char *icon, char *summary, char *body, int32_t timeout) {
   printf("\"%s\" %u \"%s\" \"%s\" \"%s\" %d\n", appname, id, icon, summary, body, timeout);
   fflush(stdout);
 }
 
 int main(int argc, char *argv[]) {
-  callback_type *callback = print_notification;
+  callback_type *callback = print_cnotification;
 
   if (argc > 1) {
     if (argc == 2 && strcmp(argv[1], "-json") == 0) {
@@ -45,10 +45,10 @@ int main(int argc, char *argv[]) {
   }
 
 
-  noti_init(callback);
-  while (noti_process_events()) {
+  cnoti_init(callback);
+  while (cnoti_process_events()) {
   };
-  char const *errstr = noti_get_error_msg();
+  char const *errstr = cnoti_get_error_msg();
   if (errstr) {
     fprintf(stderr, "%s", errstr);
     return 1;

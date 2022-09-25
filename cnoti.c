@@ -10,7 +10,7 @@
 
 #include <dbus/dbus.h>
 
-#include "noti.h"
+#include "cnoti.h"
 
 #ifndef not
 #define not !
@@ -97,7 +97,7 @@ static DBusHandlerResult monitor_filter(DBusConnection *connection, DBusMessage 
   }
 
   if (dbus_message_is_signal(message, DBUS_INTERFACE_LOCAL, "Disconnected")) {
-    error("noti-monitor-filter: Disconnected");
+    error("cnoti-monitor-filter: Disconnected");
   }
 
   return DBUS_HANDLER_RESULT_HANDLED;
@@ -112,7 +112,7 @@ static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter)
                                                   DBUS_INTERFACE_MONITORING, "BecomeMonitor");
 
   if (new_call_message == NULL) {
-    error("noti-monitor: Out of memory while registering a monitoring interface.");
+    error("cnoti-monitor: Out of memory while registering a monitoring interface.");
     return FALSE;
   }
 
@@ -124,7 +124,7 @@ static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter)
           dbus_message_iter_append_basic(&filters_it, DBUS_TYPE_STRING, &filter) and
           dbus_message_iter_close_container(&message_it, &filters_it) and
           dbus_message_iter_append_basic(&message_it, DBUS_TYPE_UINT32, &zero))) {
-    error("noti-monitor: Out of memory while registering the filter array.");
+    error("cnoti-monitor: Out of memory while registering the filter array.");
     return FALSE;
   }
 
@@ -133,10 +133,10 @@ static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter)
   if (connection_message != NULL) {
     dbus_message_unref(connection_message);
   } else if (dbus_error_has_name(&err, DBUS_ERROR_UNKNOWN_INTERFACE)) {
-    warning("noti-monitor: Failed to enable new-style monitoring. Listening instead.");
+    warning("cnoti-monitor: Failed to enable new-style monitoring. Listening instead.");
     dbus_error_free(&err);
   } else {
-    warning("noti-monitor: Failed to enable monitoring: %s: \"%s\". Listening instead.", err.name,
+    warning("cnoti-monitor: Failed to enable monitoring: %s: \"%s\". Listening instead.", err.name,
             err.message);
     dbus_error_free(&err);
   }
@@ -150,7 +150,7 @@ static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter)
 // PUBLIC_INTERFACE
 // ----------------
 
-bool noti_init(callback_type *new_callback) {
+bool cnoti_init(callback_type *new_callback) {
   DBusError err;
   dbus_error_init(&err);
 
@@ -188,11 +188,11 @@ bool noti_init(callback_type *new_callback) {
   return true;
 }
 
-bool noti_process_events() {
+bool cnoti_process_events() {
   if (g_failed) {
     return false;
   }
   return dbus_connection_read_write_dispatch(g_connection, -1);
 }
 
-char const *noti_get_error_msg() { return g_errstr[0] == 0 ? NULL : g_errstr; }
+char const *cnoti_get_error_msg() { return g_errstr[0] == 0 ? NULL : g_errstr; }
