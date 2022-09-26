@@ -24,7 +24,7 @@
 
 static bool g_failed = true;
 static char g_errstr[128] = "Not started";
-static callback_type *g_callback = NULL;
+static cnoti_callback_type *g_callback = NULL;
 static DBusConnection *g_connection;
 
 // Message Processing
@@ -150,7 +150,7 @@ static dbus_bool_t start_monitor(DBusConnection *connection, char const *filter)
 // PUBLIC_INTERFACE
 // ----------------
 
-bool cnoti_init(callback_type *new_callback) {
+bool cnoti_init(cnoti_callback_type *new_callback) {
   DBusError err;
   dbus_error_init(&err);
 
@@ -196,3 +196,10 @@ bool cnoti_process_events() {
 }
 
 char const *cnoti_get_error_msg() { return g_errstr[0] == 0 ? NULL : g_errstr; }
+
+char const *cnoti(cnoti_callback_type *callback) {
+  cnoti_init(callback);
+  while (cnoti_process_events()) {
+  }
+  return cnoti_get_error_msg();
+}

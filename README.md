@@ -16,7 +16,7 @@ To install run this
 
 ## Usage
 
-    bool cnoti_init(callback_type *callback)
+    bool cnoti_init(cnoti_callback_type *callback)
 
 Initializes DBus connection and saves your callback pointer to call when a notification is received.
 False means it failed, check error message. If callback is NULL, it will not be set.
@@ -31,6 +31,11 @@ continue until `cnoti_init` is called again
 Returns pointer to static message array, or NULL if no there's no error message. Don't free the
 string.
 
+    char const *cnoti(cnoti_callback_type *callback);
+
+Does all of the above in one call, returns NULL if there was no error, and returns pointer to a
+message if there was an error. Don't free the string.
+
 ## Noticat (notifications-cat)
 
 This is a simple example of usage, which can be used as simple transport. It's recommended to use
@@ -42,4 +47,21 @@ example to MQTT) eg.
 
 ## Example
 
-See noticat.c.
+First You need a function that will handle the output:
+
+    void print_notification(char *appname, uint32_t id, char *icon, char *summary, char *body, int32_t timeout) {
+      printf("\"%s\" %u \"%s\" \"%s\" \"%s\" %d\n", appname, id, icon, summary, body, timeout);
+      fflush(stdout);
+    }
+
+Then You initialize the DBUS connection, run loop processing events and get error messages:
+
+    cnoti_init(print_notification);
+    while (cnoti_process_events()) {}
+    return cnoti_get_error_msg();
+
+Or simply call noti which does it all:
+
+    cnoti(print_notification);
+
+Probably in a separate thread though.

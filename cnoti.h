@@ -4,15 +4,18 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef void(callback_type)(char *, uint32_t, char *, char *, char *, int32_t);
+typedef void(cnoti_callback_type)(char *, uint32_t, char *, char *, char *, int32_t);
 
 /** Initialize dbus connection and set the callback */
-bool cnoti_init(callback_type *new_callback);
+bool cnoti_init(cnoti_callback_type *new_callback);
 
 /** Process dbus events. */
 bool cnoti_process_events();
 
 /** Return error message or NULL if none. Don't free the string. */
 char const *cnoti_get_error_msg();
+
+/** Do all of the above in one call, probably should be combined with pthread */
+char const *cnoti(cnoti_callback_type *callback);
 
 #endif //__NOTI__
