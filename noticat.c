@@ -7,7 +7,8 @@
 #include <cjson/cJSON.h>
 #include <stdlib.h>
 
-void print_json(char *appname, uint32_t id, char *icon, char *summary, char *body, int32_t timeout) {
+void print_json(char const *appname, uint32_t id, char const *icon, char const *summary, char const *body,
+                int32_t timeout) {
   cJSON *object = cJSON_CreateObject();
   cJSON_AddStringToObject(object, "application", appname);
   cJSON_AddNumberToObject(object, "id", id);
@@ -22,7 +23,8 @@ void print_json(char *appname, uint32_t id, char *icon, char *summary, char *bod
 }
 #endif
 
-void print_notification(char *appname, uint32_t id, char *icon, char *summary, char *body, int32_t timeout) {
+void print_notification(char const *appname, uint32_t id, char const *icon, char const *summary,
+                        char const *body, int32_t timeout) {
   printf("\"%s\" %u \"%s\" \"%s\" \"%s\" %d\n", appname, id, icon, summary, body, timeout);
   fflush(stdout);
 }
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]) {
 #else
       printf("JSON option not available in this build, please build with USE_CJSON=YES to use it.\n");
       return 1;
-#endif //CJSON
+#endif // CJSON
     } else {
       printf("Usage: %s [-json]\n", argv[0]);
       return 0;

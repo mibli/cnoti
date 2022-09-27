@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef void(cnoti_callback_type)(char *, uint32_t, char *, char *, char *, int32_t);
+typedef void(cnoti_callback_type)(char const *, uint32_t, char const *, char const *, char const *, int32_t);
 
 /** Initialize dbus connection and set the callback */
 bool cnoti_init(cnoti_callback_type *new_callback);

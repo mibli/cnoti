@@ -49,8 +49,8 @@ example to MQTT) eg.
 
 First You need a function that will handle the output:
 
-    void print_notification(char *appname, uint32_t id, char *icon, char *summary, char *body, int32_t timeout) {
-      printf("\"%s\" %u \"%s\" \"%s\" \"%s\" %d\n", appname, id, icon, summary, body, timeout);
+    void print_notification(char const *appname, uint32_t id, char const *icon, char const *summary, char const *body, int32_t timeout) {
+      printf("\"%s\" %u \"%s\" \"%s\" \"%s\" %d\n", appname, id, icon, summary, body, timeout)
       fflush(stdout);
     }
 
@@ -58,10 +58,16 @@ Then You initialize the DBUS connection, run loop processing events and get erro
 
     cnoti_init(print_notification);
     while (cnoti_process_events()) {}
-    return cnoti_get_error_msg();
+    char const *errstr = cnoti_get_error_msg();
+    if (errstr) {
+      printf("%s\n", errstr);
+    }
 
-Or simply call noti which does it all:
+Or simply call cnoti which does it all:
 
-    cnoti(print_notification);
+    char const *errstr = cnoti(print_notification);
+    if (errstr) {
+      printf("%s\n", errstr);
+    }
 
 Probably in a separate thread though.
